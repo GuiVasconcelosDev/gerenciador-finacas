@@ -2,7 +2,7 @@ package br.com.guilhermedev.finacas.principal;
 
 import br.com.guilhermedev.finacas.model.TipoTransacao;
 import br.com.guilhermedev.finacas.model.Transacao;
-import br.com.guilhermedev.finacas.service.GerenciadorArquivo;
+import br.com.guilhermedev.finacas.service.GerenciadorBanco;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.Scanner;
 public class Principal {
     static void main() {
         Scanner leitura = new Scanner(System.in);
-        GerenciadorArquivo gerenciador = new GerenciadorArquivo();
+        GerenciadorBanco gerenciador = new GerenciadorBanco();
         int opcao = 0;
 
         String menu = """
@@ -21,11 +21,12 @@ public class Principal {
                 1) Adicionar Receita (Entrada)
                 2) Adicionar Despesa (Saída)
                 3) Listar Transações e Saldo Geral
-                4) Sair
+                4) Resumo Estatístico Avançado (Streams)\s
+                5) Sair
                 =========================================
-                """;
+               \s""";
 
-        while (opcao != 4) {
+        while (opcao != 5) {
             System.out.println(menu);
             System.out.print("Escolha uma opção: ");
             opcao = leitura.nextInt();
@@ -73,6 +74,33 @@ public class Principal {
                     System.out.println("--------------------------------------\n");
                 }
             } else if (opcao == 4) {
+                System.out.println("\n--- ANALISE ESTATÍSTICA AVANÇADA (STREAM) ---");
+                List<Transacao> lista = gerenciador.listarTransacoes();
+
+                if (lista.isEmpty()) {
+                    System.out.println("Nenhuma transação para analisar.");
+                } else {
+                    double totalReceitas = lista.stream()
+                            .filter(t -> t.tipo() == TipoTransacao.RECEITA)
+                            .mapToDouble(Transacao::valor)
+                            .sum();
+                    double totalDespesas = lista.stream()
+                            .filter(t -> t.tipo() == TipoTransacao.DESPESA)
+                            .mapToDouble(Transacao::valor)
+                            .sum();
+
+                    double  maiorDespesa = lista.stream()
+                            .filter(t -> t.tipo() == TipoTransacao.DESPESA)
+                            .mapToDouble(Transacao::valor)
+                            .max()
+                            .orElse(0.0);
+
+                    System.out.printf("Total acumulado de Entradas : R$ %.2f\n", totalReceitas);
+                    System.out.printf("Total acumulado de Saídas : R$ %.2f\n", totalDespesas);
+                    System.out.printf("Maior despesa identificada : R$ %.2f\n", maiorDespesa);
+                    System.out.println("----------------------------------------------------\n");
+                }
+            } else if (opcao == 5) {
                 System.out.println("Sistema encerrado. Cuide bem do seu dinheiro!");
             } else {
                 System.out.println("Opção inválida! Tente novamente.");
